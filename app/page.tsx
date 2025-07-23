@@ -1,8 +1,13 @@
-
+ import { Button } from "@/components/ui/button"
 const page = () => {
   return (
     
-    <div>page</div>
+    <div>page
+      <br/>
+      <Button variant="outline"></Button>
+      <Button variant="primary"></Button>
+    </div>
+    
   )
 }
 
