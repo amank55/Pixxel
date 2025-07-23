@@ -5,6 +5,8 @@ import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import Header from "@/components/header";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ConvexClientProvider } from "@/components/Convex-Client-Provider";
+import { shadesOfPurple } from '@clerk/themes'
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -29,15 +31,24 @@ export default function RootLayout({
           defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
-        />
-          <ClerkProvider>
+
+
+        /> 
+
+         <ClerkProvider
+           publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+            appearance={{
+              baseTheme: shadesOfPurple,
+            }}>
+          <ConvexClientProvider>
             <Header/>
             <main className="bg-slate-900 min-h-screen text-white overflow-x-hidden">
              <FloatingShapes />
             <Toaster richColors />
 
                 {children}
-              </main>
+              </main>           
+            </ConvexClientProvider>
             </ClerkProvider>
       </body>
     </html>
