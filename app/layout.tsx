@@ -1,8 +1,10 @@
-
-import { Geist, Geist_Mono } from "next/font/google";
+import { FloatingShapes } from "@/components/floating-shapes";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import Header from "@/components/header";
+import { ClerkProvider } from "@clerk/nextjs";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -28,7 +30,15 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         />
-        {children}
+          <ClerkProvider>
+            <Header/>
+            <main className="bg-slate-900 min-h-screen text-white overflow-x-hidden">
+             <FloatingShapes />
+            <Toaster richColors />
+
+                {children}
+              </main>
+            </ClerkProvider>
       </body>
     </html>
   );
