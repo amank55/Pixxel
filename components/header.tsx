@@ -10,9 +10,9 @@ import { Authenticated, Unauthenticated } from "convex/react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { Button } from "./ui/button";
-
+import { useStoreUser } from "@/hooks/use-store-user";
 export default function Header() {
-  //const { isLoading } = useStoreUser();
+  const { isLoading } = useStoreUser();
   const path = usePathname();
 
   if (path.includes("/editor")) {
@@ -93,7 +93,11 @@ export default function Header() {
             </SignUpButton>
           </Unauthenticated>
         </div>
-        
+          {isLoading && (
+          <div className="fixed bottom-0 left-0 w-full z-40 flex justify-center">
+            <BarLoader width={"95%"} color="#06b6d4" />
+          </div>
+          )}
       </div>
     </header>
   );
