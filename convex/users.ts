@@ -1,5 +1,5 @@
-import { mutation } from "./_generated/server";
-
+import { mutation, query } from "./_generated/server";
+import { v } from "convex/values";
 
 export const store = mutation({
   args: {},
@@ -25,13 +25,45 @@ export const store = mutation({
     return await ctx.db.insert("users", {
       name: identity.name ?? "Anonymous",
       tokenIdentifier: identity.tokenIdentifier,
-      email: identity.email,
+      email: identity.email ?? "",
       imageUrl: identity.pictureUrl,
       plan: "free", // Default plan
       projectsUsed: 0, // Initialize usage counters
       exportsThisMonth: 0,
       createdAt: Date.now(),
       lastActiveAt: Date.now(),
+    } as {
+      name: string;
+      tokenIdentifier: string;
+      email: string;
+      imageUrl?: string;
+      plan: string;
+      projectsUsed: number;
+      exportsThisMonth: number;
+      createdAt: number;
+      lastActiveAt: number;
     });
+  },
+});
+
+export const getCurrentUser = query({
+  handler: async (ctx: any) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_token", (q: any) =>
+        q.eq("tokenIdentifier", identity.tokenIdentifier)
+      )
+      .unique();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return user;
   },
 });
