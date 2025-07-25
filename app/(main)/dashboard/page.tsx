@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useConvexQuery } from "@/hooks/use-convex-query";
 import { api } from "@/convex/_generated/api";
 import { NewProjectModal } from "./_components/new-project-modal";
-
+import { ProjectGrid } from "./_components/project-grid";
 export default function DashboardPage() {
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
 
@@ -46,27 +46,11 @@ export default function DashboardPage() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
           </div>
         ) : projects && projects.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {/* Render your projects here */}
-            {projects.map((project: any) => (
-              <div key={project._id} className="bg-white/5 rounded-lg p-6 text-white">
-                <h2 className="text-xl font-semibold mb-2">{project.title}</h2>
-                <p className="text-white/60">
-                  {project.width} × {project.height}
-                </p>
-                {project.thumbnailUrl && (
-                  <img 
-                    src={project.thumbnailUrl} 
-                    alt={project.title}
-                    className="w-full h-32 object-cover rounded mt-3"
-                  />
-                )}
-              </div>
-            ))}
-          </div>
+          <ProjectGrid projects={projects ?? []} />
         ) : (
           <EmptyState onCreateProject={() => setShowNewProjectModal(true)} />
         )}
+
 
         {/* New Project Modal - Fixed prop name */}
         <NewProjectModal

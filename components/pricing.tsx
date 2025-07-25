@@ -120,7 +120,7 @@ const PricingSection = () => {
     },
     {
       id: "pro",
-      plan: "Pro",
+      plan: "pro",
       price: 10,
       features: [
         "Unlimited projects",
