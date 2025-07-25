@@ -35,12 +35,14 @@ export function NewProjectModal({ isOpen, onCloseAction }: NewProjectModalProps)
 
   const { mutate: createProject } = useConvexMutation(api.project.create);
   const { data: projects } = useConvexQuery(api.project.getUserProjects);
+  const { data: currentUser } = useConvexQuery(api.users.getCurrentUser); // Get current user
  
   const router = useRouter();
 
-  // Check if user can create new project
+  // Check if user can create new project based on their actual plan
   const currentProjectCount = projects?.length || 0;
-  const canCreate = currentProjectCount < 3;
+  const userPlan = currentUser?.plan || "free";
+  const canCreate = userPlan === "pro" || currentProjectCount < 3; // Pro users can create unlimited projects
 
   // Handle file drop
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -65,9 +67,9 @@ export function NewProjectModal({ isOpen, onCloseAction }: NewProjectModalProps)
     disabled: !canCreate, // Disable dropzone when limit reached
   });
 
-  // Handle create project with plan limit check
+  // Handle create project
   const handleCreateProject = async () => {
-    // Check project limits first - Show upgrade modal for limit reached
+    // Check project limits only for free users
     if (!canCreate) {
       setShowUpgradeModal(true);
       return;
@@ -132,157 +134,164 @@ export function NewProjectModal({ isOpen, onCloseAction }: NewProjectModalProps)
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl bg-slate-800 border-white/10">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <DialogTitle className="text-2xl font-bold text-white">
-                Create New Project
-              </DialogTitle>
-              <Badge
-                variant="secondary"
-                className="bg-slate-700 text-white/70"
-              >
-                {currentProjectCount}/3 projects
-              </Badge>
-            </div>
-          </div>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Project Limit Warning for Free Users */}
-          {currentProjectCount >= 2 && (
-            <Alert className="bg-amber-500/10 border-amber-500/20">
-              <AlertDescription className="text-amber-300/80">
-                <div className="font-semibold text-amber-400 mb-1">
-                  {currentProjectCount === 2
-                    ? "Last Free Project"
-                    : "Project Limit Reached"}
-                </div>
-                {currentProjectCount === 2
-                  ? "This will be your last free project."
-                  : "Free plan is limited to 3 projects. Please delete some projects to create new ones."}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* File Upload Area */}
-          {!selectedFile ? (
-            <div
-              {...getRootProps()}
-              className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
-                isDragActive
-                  ? "border-cyan-400 bg-cyan-400/5"
-                  : "border-white/20 hover:border-white/40"
-              } ${!canCreate ? "opacity-50 pointer-events-none" : ""}`}
-            >
-              <input {...getInputProps()} />
-              <Upload className="h-12 w-12 text-white/50 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">
-                {isDragActive ? "Drop your image here" : "Upload an Image"}
-              </h3>
-              <p className="text-white/70 mb-4">
-                {canCreate
-                  ? "Drag and drop your image, or click to browse"
-                  : "Project limit reached"}
-              </p>
-              <p className="text-sm text-white/50">
-                Supports PNG, JPG, WEBP up to 20MB
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {/* Image Preview */}
-              <div className="relative">
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="w-full h-64 object-cover rounded-xl border border-white/10"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setSelectedFile(null);
-                    setPreviewUrl(undefined);
-                    setProjectTitle("");
-                  }}
-                  className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white"
+    <>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="max-w-2xl bg-slate-800 border-white/10">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <DialogTitle className="text-2xl font-bold text-white">
+                  Create New Project
+                </DialogTitle>
+                <Badge
+                  variant="secondary"
+                  className="bg-slate-700 text-white/70"
                 >
-                  <X className="h-4 w-4" />
-                </Button>
+                  {userPlan === "pro" 
+                    ? `${currentProjectCount} projects (Pro)` 
+                    : `${currentProjectCount}/3 projects`
+                  }
+                </Badge>
               </div>
+            </div>
+          </DialogHeader>
 
-              {/* Project Title Input */}
-              <div className="space-y-2">
-                <Label htmlFor="project-title" className="text-white">
-                  Project Title
-                </Label>
-                <Input
-                  id="project-title"
-                  type="text"
-                  value={projectTitle}
-                  onChange={(e) => setProjectTitle(e.target.value)}
-                  placeholder="Enter project name..."
-                  className="bg-slate-700 border-white/20 text-white placeholder-white/50 focus:border-cyan-400 focus:ring-cyan-400"
-                />
+          <div className="space-y-6">
+            {/* Project Limit Warning for Free Users ONLY */}
+            {userPlan === "free" && currentProjectCount >= 2 && (
+              <Alert className="bg-amber-500/10 border-amber-500/20">
+                <AlertDescription className="text-amber-300/80">
+                  <div className="font-semibold text-amber-400 mb-1">
+                    {currentProjectCount === 2
+                      ? "Last Free Project"
+                      : "Project Limit Reached"}
+                  </div>
+                  {currentProjectCount === 2
+                    ? "This will be your last free project."
+                    : "Free plan is limited to 3 projects. Please delete some projects to create new ones."}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* File Upload Area */}
+            {!selectedFile ? (
+              <div
+                {...getRootProps()}
+                className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
+                  isDragActive
+                    ? "border-cyan-400 bg-cyan-400/5"
+                    : "border-white/20 hover:border-white/40"
+                } ${!canCreate ? "opacity-50 pointer-events-none" : ""}`}
+              >
+                <input {...getInputProps()} />
+                <Upload className="h-12 w-12 text-white/50 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  {isDragActive ? "Drop your image here" : "Upload an Image"}
+                </h3>
+                <p className="text-white/70 mb-4">
+                  {canCreate
+                    ? "Drag and drop your image, or click to browse"
+                    : "Project limit reached"}
+                </p>
+                <p className="text-sm text-white/50">
+                  Supports PNG, JPG, WEBP up to 20MB
+                </p>
               </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Image Preview */}
+                <div className="relative">
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="w-full h-64 object-cover rounded-xl border border-white/10"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setSelectedFile(null);
+                      setPreviewUrl(undefined);
+                      setProjectTitle("");
+                    }}
+                    className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
 
-              {/* File Details */}
-              <div className="bg-slate-700/50 rounded-lg p-4">
-                <div className="flex items-center gap-3">
-                  <ImageIcon className="h-5 w-5 text-cyan-400" />
-                  <div>
-                    <p className="text-white font-medium">
-                      {selectedFile.name}
-                    </p>
-                    <p className="text-white/70 text-sm">
-                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
+                {/* Project Title Input */}
+                <div className="space-y-2">
+                  <Label htmlFor="project-title" className="text-white">
+                    Project Title
+                  </Label>
+                  <Input
+                    id="project-title"
+                    type="text"
+                    value={projectTitle}
+                    onChange={(e) => setProjectTitle(e.target.value)}
+                    placeholder="Enter project name..."
+                    className="bg-slate-700 border-white/20 text-white placeholder-white/50 focus:border-cyan-400 focus:ring-cyan-400"
+                  />
+                </div>
+
+                {/* File Details */}
+                <div className="bg-slate-700/50 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <ImageIcon className="h-5 w-5 text-cyan-400" />
+                    <div>
+                      <p className="text-white font-medium">
+                        {selectedFile.name}
+                      </p>
+                      <p className="text-white/70 text-sm">
+                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-
-        <DialogFooter className="gap-3">
-          <Button
-            variant="ghost"
-            onClick={handleClose}
-            disabled={isUploading}
-            className="text-white/70 hover:text-white"
-          >
-            Cancel
-          </Button>
-
-          <Button
-            onClick={handleCreateProject}
-            disabled={isUploading} // Remove the other conditions so button is always clickable
-            variant="primary"
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Creating...
-              </>
-            ) : !canCreate ? (
-              "Upgrade to Pro"
-            ) : (
-              "Create Project"
             )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+          </div>
 
-      {/* Upgrade Modal - Fix the props */}
-      <UpgradeModal
-        isOpen={showUpgradeModal}
-        onCloseAction={() => setShowUpgradeModal(false)} // Change from onClose to onCloseAction
-        restrictedTool="projects" // Add this prop
-        reason="Free plan is limited to 3 projects. Upgrade to Pro for unlimited projects and access to all AI editing tools." // Add this prop
-      />
-    </Dialog>
+          <DialogFooter className="gap-3">
+            <Button
+              variant="ghost"
+              onClick={handleClose}
+              disabled={isUploading}
+              className="text-white/70 hover:text-white"
+            >
+              Cancel
+            </Button>
+
+            <Button
+              onClick={handleCreateProject}
+              disabled={isUploading} // Remove the other conditions so button is always clickable
+              variant="primary"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : !canCreate ? (
+                "Upgrade to Pro"
+              ) : (
+                "Create Project"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upgrade Modal - Only show for free users */}
+      {userPlan === "free" && (
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onCloseAction={() => setShowUpgradeModal(false)}
+          restrictedTool="projects"
+          reason="Free plan is limited to 3 projects. Upgrade to Pro for unlimited projects and access to all AI editing tools."
+        />
+      )}
+    </>
   );
 }

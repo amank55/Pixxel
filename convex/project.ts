@@ -34,18 +34,18 @@ export const create = mutation({
     height: v.number(),
     canvasState: v.optional(v.any()),
   },
-  handler: async (ctx, args) => {
-    const user = await ctx.runQuery(api.users.getCurrentUser);
+  handler: async (ctx: any, args: any): Promise<string> => {
+    const user: any = await ctx.runQuery(api.users.getCurrentUser);
     
     if (!user) {
       throw new Error("Not authenticated");
     }
 
-    // Check plan limits for free users
+    // Check plan limits ONLY for free users
     if (user.plan === "free") {
       const projectCount = await ctx.db
         .query("projects")
-        .withIndex("by_user", (q) => q.eq("userId", user._id))
+        .withIndex("by_user", (q: any) => q.eq("userId", user._id))
         .collect();
 
       if (projectCount.length >= 3) {
@@ -54,9 +54,10 @@ export const create = mutation({
         );
       }
     }
+    // Pro users have unlimited projects, so no check needed
 
     // Insert the new project
-    const projectId: string = await ctx.db.insert("projects", {
+    const projectId = await ctx.db.insert("projects", {
       userId: user._id,
       title: args.title,
       originalImageUrl: args.originalImageUrl,
