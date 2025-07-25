@@ -1,13 +1,13 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import * as internal from "./_generated/api";
+import { api } from "./_generated/api";
 
 // Get all projects for the current user
 export const getUserProjects = query({
   args: {},
-  handler: async (ctx) => {
-    // Get the current user
-    const user = await ctx.runQuery(internal.users.getCurrentUser);
+  handler: async (ctx): Promise<any[]> => {
+    // Get the current user - Use api.users.getCurrentUser
+    const user = await ctx.runQuery(api.users.getCurrentUser);
     
     if (!user) {
       throw new Error("Not authenticated");
@@ -35,7 +35,7 @@ export const create = mutation({
     canvasState: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
-    const user = await ctx.runQuery(internal.users.getCurrentUser);
+    const user = await ctx.runQuery(api.users.getCurrentUser);
     
     if (!user) {
       throw new Error("Not authenticated");
@@ -56,7 +56,7 @@ export const create = mutation({
     }
 
     // Insert the new project
-    const projectId = await ctx.db.insert("projects", {
+    const projectId: string = await ctx.db.insert("projects", {
       userId: user._id,
       title: args.title,
       originalImageUrl: args.originalImageUrl,
@@ -83,7 +83,7 @@ export const create = mutation({
 export const deleteProject = mutation({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
-    const user = await ctx.runQuery(internal.users.getCurrentUser);
+    const user = await ctx.runQuery(api.users.getCurrentUser);
     
     if (!user) {
       throw new Error("Not authenticated");
@@ -115,7 +115,7 @@ export const deleteProject = mutation({
 export const getProject = query({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
-    const user = await ctx.runQuery(internal.users.getCurrentUser);
+    const user = await ctx.runQuery(api.users.getCurrentUser);
     
     if (!user) {
       throw new Error("Not authenticated");

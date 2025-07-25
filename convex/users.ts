@@ -1,6 +1,5 @@
 import { mutation, query } from "./_generated/server";
 
-
 export const store = mutation({
   args: {},
   handler: async (ctx) => {
@@ -37,7 +36,7 @@ export const store = mutation({
 });
 
 export const getCurrentUser = query({
-  args: {},
+  args: {}, // Add this line!
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {

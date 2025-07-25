@@ -28,7 +28,7 @@ const PricingCard = ({
   planId,
   buttonText,
 }: PricingCardProps) => {
-  const [ref, isVisible] = useIntersectionObserver();
+  const { ref, isVisible } = useIntersectionObserver();
   const [isHovered, setIsHovered] = useState(false);
   const { has } = useAuth();
 
