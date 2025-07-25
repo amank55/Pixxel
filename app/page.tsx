@@ -3,7 +3,8 @@
  import { Button } from "@/components/ui/button"
  import Link from "next/link";
  import React, { useEffect, useState } from "react";
- 
+ import FeaturesSection from "@/components/features";
+import PricingSection from "@/components/pricing";
 const HeroSection = () => {
   const [textVisible, setTextVisible] = useState(false);
   const [demoHovered, setDemoHovered] = useState(false);
@@ -103,6 +104,8 @@ const App = () => {
   return (
     <div className="pt-36">
       <HeroSection />
+      <FeaturesSection />
+      <PricingSection/>
 
       {/* Final CTA Section */}
       <section className="py-20 text-center">
