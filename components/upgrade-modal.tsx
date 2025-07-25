@@ -13,7 +13,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PricingTable } from "@clerk/nextjs";
 
-type ToolId = "background" | "ai_extender" | "ai_edit";
+type ToolId = "background" | "ai_extender" | "ai_edit" | "projects"; // Add "projects" here
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -28,6 +28,7 @@ export function UpgradeModal({ isOpen, onCloseAction, restrictedTool, reason }: 
       background: "AI Background Tools",
       ai_extender: "AI Image Extender",
       ai_edit: "AI Editor",
+      projects: "More than 3 Projects", // Add this line
     };
     return toolId ? toolNames[toolId] : "Premium Feature";
   };

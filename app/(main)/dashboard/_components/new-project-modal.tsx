@@ -19,6 +19,7 @@ import { useConvexMutation, useConvexQuery } from "@/hooks/use-convex-query";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { UpgradeModal } from "@/components/upgrade-modal";
 
 interface NewProjectModalProps {
   isOpen: boolean;
@@ -30,6 +31,7 @@ export function NewProjectModal({ isOpen, onCloseAction }: NewProjectModalProps)
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(undefined);
   const [projectTitle, setProjectTitle] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const { mutate: createProject } = useConvexMutation(api.project.create);
   const { data: projects } = useConvexQuery(api.project.getUserProjects);
@@ -38,7 +40,7 @@ export function NewProjectModal({ isOpen, onCloseAction }: NewProjectModalProps)
 
   // Check if user can create new project
   const currentProjectCount = projects?.length || 0;
-  const canCreate = currentProjectCount < 3; // Simple free plan limit
+  const canCreate = currentProjectCount < 3;
 
   // Handle file drop
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -59,14 +61,15 @@ export function NewProjectModal({ isOpen, onCloseAction }: NewProjectModalProps)
       "image/*": [".png", ".jpg", ".jpeg", ".webp", ".gif"],
     },
     maxFiles: 1,
-    maxSize: 20 * 1024 * 1024, // 20MB limit
+    maxSize: 20 * 1024 * 1024,
+    disabled: !canCreate, // Disable dropzone when limit reached
   });
 
   // Handle create project with plan limit check
   const handleCreateProject = async () => {
-    // Check project limits first
+    // Check project limits first - Show upgrade modal for limit reached
     if (!canCreate) {
-      toast.error("Free plan is limited to 3 projects. Please delete some projects to create new ones.");
+      setShowUpgradeModal(true);
       return;
     }
 
@@ -256,7 +259,7 @@ export function NewProjectModal({ isOpen, onCloseAction }: NewProjectModalProps)
 
           <Button
             onClick={handleCreateProject}
-            disabled={!selectedFile || !projectTitle.trim() || isUploading}
+            disabled={isUploading} // Remove the other conditions so button is always clickable
             variant="primary"
           >
             {isUploading ? (
@@ -264,12 +267,22 @@ export function NewProjectModal({ isOpen, onCloseAction }: NewProjectModalProps)
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Creating...
               </>
+            ) : !canCreate ? (
+              "Upgrade to Pro"
             ) : (
               "Create Project"
             )}
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Upgrade Modal - Fix the props */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onCloseAction={() => setShowUpgradeModal(false)} // Change from onClose to onCloseAction
+        restrictedTool="projects" // Add this prop
+        reason="Free plan is limited to 3 projects. Upgrade to Pro for unlimited projects and access to all AI editing tools." // Add this prop
+      />
     </Dialog>
   );
 }
