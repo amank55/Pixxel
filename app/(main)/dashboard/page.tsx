@@ -68,10 +68,10 @@ export default function DashboardPage() {
           <EmptyState onCreateProject={() => setShowNewProjectModal(true)} />
         )}
 
-        {/* New Project Modal */}
+        {/* New Project Modal - Fixed prop name */}
         <NewProjectModal
           isOpen={showNewProjectModal}
-          onClose={() => setShowNewProjectModal(false)}
+          onCloseAction={() => setShowNewProjectModal(false)}
         />
       </div>
     </div>
