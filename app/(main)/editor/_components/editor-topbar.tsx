@@ -29,7 +29,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
-import { useCanvas } from "@/context/canvas-context";
+import { useCanvas } from "@/context/context";
 import { usePlanAccess } from "@/hooks/use-plan-access";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { FabricImage } from "fabric";
@@ -106,27 +106,16 @@ const EXPORT_FORMATS = [
   },
 ];
 
-type ToolId = typeof TOOLS[number]["id"];
-
-interface Project {
-  _id: string;
-  title: string;
-  width: number;
-  height: number;
-  originalImageUrl?: string;
-  // Add other properties as needed
-}
-
-export function EditorTopBar({ project }: { project: Project }) {
+export function EditorTopBar({ project }) {
   const router = useRouter();
   const [isExporting, setIsExporting] = useState(false);
-  const [exportFormat, setExportFormat] = useState<string | null>(null);
+  const [exportFormat, setExportFormat] = useState(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [restrictedTool, setRestrictedTool] = useState<ToolId | undefined>(undefined);
+  const [restrictedTool, setRestrictedTool] = useState(null);
 
   // Undo/Redo state
-  const [undoStack, setUndoStack] = useState<string[]>([]);
-  const [redoStack, setRedoStack] = useState<string[]>([]);
+  const [undoStack, setUndoStack] = useState([]);
+  const [redoStack, setRedoStack] = useState([]);
   const [isUndoRedoOperation, setIsUndoRedoOperation] = useState(false);
 
   const { activeTool, onToolChange, canvasEditor } = useCanvas();
@@ -134,7 +123,7 @@ export function EditorTopBar({ project }: { project: Project }) {
 
   // Use the loading states from the hooks
   const { mutate: updateProject, isLoading: isSaving } = useConvexMutation(
-    api.project.updateProject
+    api.projects.updateProject
   );
   const { data: user } = useConvexQuery(api.users.getCurrentUser);
 
@@ -259,7 +248,7 @@ export function EditorTopBar({ project }: { project: Project }) {
   };
 
   // Handle tool change with access control
-  const handleToolChange = (toolId: ToolId) => {
+  const handleToolChange = (toolId) => {
     if (!hasAccess(toolId)) {
       setRestrictedTool(toolId);
       setShowUpgradeModal(true);
@@ -289,7 +278,7 @@ export function EditorTopBar({ project }: { project: Project }) {
   };
 
   // Export canvas as image
-  const handleExport = async (exportConfig: typeof EXPORT_FORMATS[number]) => {
+  const handleExport = async (exportConfig) => {
     if (!canvasEditor || !project) {
       toast.error("Canvas not ready for export");
       return;
@@ -561,7 +550,7 @@ export function EditorTopBar({ project }: { project: Project }) {
             {TOOLS.map((tool) => {
               const Icon = tool.icon;
               const isActive = activeTool === tool.id;
-              const hasToolAccess = hasAccess(tool.id as ToolId);
+              const hasToolAccess = hasAccess(tool.id);
 
               return (
                 <Button
@@ -619,9 +608,9 @@ export function EditorTopBar({ project }: { project: Project }) {
         isOpen={showUpgradeModal}
         onClose={() => {
           setShowUpgradeModal(false);
-          setRestrictedTool(undefined);
+          setRestrictedTool(null);
         }}
-        restrictedTool={restrictedTool as ToolId | undefined}
+        restrictedTool={restrictedTool}
         reason={
           restrictedTool === "export"
             ? "Free plan is limited to 20 exports per month. Upgrade to Pro for unlimited exports."

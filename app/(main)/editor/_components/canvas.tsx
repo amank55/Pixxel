@@ -17,11 +17,16 @@ function CanvasEditor({ project }: { project: Project }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { canvasEditor, setCanvasEditor, activeTool, onToolChange } =
-    useCanvas();
+    useCanvas() as {
+      canvasEditor: Canvas | null;
+      setCanvasEditor: (canvas: Canvas | null) => void;
+      activeTool: string;
+      onToolChange?: (tool: string) => void;
+    };
   const [isLoading, setIsLoading] = useState(true);
 
   const { mutate: updateProject } = useConvexMutation(
-    api.project.update
+    api.project.edit // Replace 'edit' with the actual update mutation name from your API
   );
 
   const calculateViewportScale = () => {
